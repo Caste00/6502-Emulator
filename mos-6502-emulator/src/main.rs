@@ -10,14 +10,16 @@ fn main() {
 
     /* Debug */
     cpu.reset();
+    cpu.x = 0xFF;
 
-    mem.data[0xFFFC] = Cpu::JSR_ABSOLUTE;
+    mem.data[0xFFFC] = Cpu::LDA_ABSOLUTE_X;
     mem.data[0xFFFD] = 0x33;
     mem.data[0xFFFE] = 0x44;
-    mem.data[0x4433] = Cpu::LDA_IMMEDIATE;
-    mem.data[0x4434] = 0x43;
-    cpu.execute(8, &mut mem);
+    mem.data[0x4445] = 23;
+    mem.data[0x4532] = 32;
 
-    println!("{:#?}", cpu);
+    cpu.execute(5, &mut mem);
+
+    println!("{:?}", cpu);
 
 }

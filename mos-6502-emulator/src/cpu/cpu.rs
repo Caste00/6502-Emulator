@@ -22,6 +22,9 @@ impl Cpu {
     pub const LDA_IMMEDIATE: u8 = 0x9A;
     pub const LDA_ZERO_PAGE: u8 = 0xA5;
     pub const LDA_ZERO_PAGE_X: u8 = 0xB5;
+    pub const LDA_ABSOLUTE: u8 = 0xAD;
+    pub const LDA_ABSOLUTE_X: u8 = 0xBD;
+    pub const LDA_ABSOLUTE_Y: u8 = 0xB9;
     pub const JSR_ABSOLUTE: u8 = 0x20;
 
     pub fn new() -> Self {
@@ -109,13 +112,39 @@ impl Cpu {
                     self.lda_set_status();
                     cycle -= 4;
                 },
+                Self::LDA_ABSOLUTE => {
+                    let absolute_address = self.fetch_word(memory);
+                    self.a = memory.data[absolute_address as usize];
+                    self.lda_set_status();
+                    cycle -= 4;
+                },
+                Self::LDA_ABSOLUTE_X => {
+                    let mut absolute_address = self.fetch_word(memory);
+                    let address = absolute_address.wrapping_add(self.x as u16);
+                    if (absolute_address >> 8) != (address >> 8) {
+                        cycle -= 1;
+                    }
+                    self.a = memory.data[address as usize];
+                    self.lda_set_status();
+                    cycle -= 4;
+                },
+                Self::LDA_ABSOLUTE_Y => {
+                    let mut absolute_address = self.fetch_word(memory);
+                    let address = absolute_address.wrapping_add(self.y as u16);
+                    if (absolute_address >> 8) != (address >> 8) {
+                        cycle -= 1;
+                    }
+                    self.a = memory.data[address as usize];
+                    self.lda_set_status();
+                    cycle -= 4;
+                },
                 Self::JSR_ABSOLUTE => {
                     let subroutine_address = self.fetch_word(memory);
                     self.push_on_stack(memory, ((self.pc - 1) >> 8) as u8); // byte alto
                     self.push_on_stack(memory, (self.pc - 1) as u8);        // byte basso
                     self.pc = subroutine_address as usize;
                     cycle -= 6;
-                }
+                },
                 _ => {
                     println!("Errore, istruzione {} non riconosciuta", instruction);
                     break;
